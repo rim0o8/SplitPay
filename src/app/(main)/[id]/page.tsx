@@ -1,7 +1,7 @@
 import { BillSplitForm } from '@/components/bill-split/BillSplitForm';
+import SessionNotFound from '@/components/session/SessionNotFound';
 import type { Payment } from '@/lib/split-session';
 import { getSession } from '@/lib/split-session';
-import { notFound } from 'next/navigation';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -10,7 +10,7 @@ interface Props {
 export default async function SplitSessionPage({ params }: Props) {
   const { id } = await params;
   const session = await getSession(id);
-  if (!session) return notFound();
+  if (!session) return <SessionNotFound id={id} />;
 
   return (
     <BillSplitForm

@@ -34,7 +34,8 @@ export async function createSession(
     participants: participants.map((p) => ({ id: crypto.randomUUID(), name: p.name.trim() })),
     payments: [],
   };
-  await redis.set(`split:${id}`, session);
+  const ttlSeconds = 60 * 60 * 24 * 180; // 180 days
+  await redis.set(`split:${id}`, session, { ex: ttlSeconds });
   log('created', id, 'participants', session.participants.length);
   return id;
 }
@@ -55,5 +56,6 @@ export async function updateSession(
   const current = await redis.get<Session>(key);
   if (!current) return;
   const updated: Session = { ...current, ...data } as Session;
-  await redis.set(key, updated);
+  const ttlSeconds = 60 * 60 * 24 * 180;
+  await redis.set(key, updated, { ex: ttlSeconds });
 }
