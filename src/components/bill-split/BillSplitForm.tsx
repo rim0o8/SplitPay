@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -321,79 +320,77 @@ export function BillSplitForm({
 
   return (
     <>
-      <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle>{sessionTitle}</CardTitle>
+      <div className="mx-auto w-full max-w-5xl lg:max-w-6xl p-4 sm:p-6 space-y-6">
+        <div className="flex flex-row items-center justify-between gap-2 mb-6">
+          <h1 className="text-lg font-semibold">{sessionTitle}</h1>
           <Button variant="ghost" size="icon" onClick={handleShare} aria-label="share-link">
             <Share2 className="h-4 w-4" />
           </Button>
-        </CardHeader>
+        </div>
 
-        <CardContent className="space-y-6">
-          {/* Participants Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">参加者</h3>
+        {/* Participants Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">参加者</h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setParticipantsOpen((prev) => !prev)}
+              aria-label="toggle-participants"
+            >
+              {participantsOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {participantsOpen && (
+            <>
+              {participants.map((p, index) => (
+                <div key={p.id} className="grid w-full grid-cols-[1fr_auto] gap-2">
+                  <Input
+                    placeholder="名前"
+                    value={p.name}
+                    onChange={(e) => handleParticipantChange(index, e.target.value)}
+                    className="w-full"
+                  />
+                  {participants.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveParticipant(index)}
+                      aria-label="remove-participant"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
               <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setParticipantsOpen((prev) => !prev)}
-                aria-label="toggle-participants"
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={handleAddParticipant}
               >
-                {participantsOpen ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                参加者を追加
               </Button>
-            </div>
+            </>
+          )}
+        </div>
 
-            {participantsOpen && (
-              <>
-                {participants.map((p, index) => (
-                  <div key={p.id} className="grid w-full grid-cols-[1fr_auto] gap-2">
-                    <Input
-                      placeholder="名前"
-                      value={p.name}
-                      onChange={(e) => handleParticipantChange(index, e.target.value)}
-                      className="w-full"
-                    />
-                    {participants.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveParticipant(index)}
-                        aria-label="remove-participant"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                  onClick={handleAddParticipant}
-                >
-                  参加者を追加
-                </Button>
-              </>
-            )}
-          </div>
+        {/* Payments Section */}
+        <div className="space-y-2">
+          <h3 className="font-semibold">支払い履歴</h3>
+          {payments.map((payment, index) => (
+            <SwipeablePaymentRow key={payment.id} payment={payment} index={index} />
+          ))}
+        </div>
 
-          {/* Payments Section */}
-          <div className="space-y-2">
-            <h3 className="font-semibold">支払い履歴</h3>
-            {payments.map((payment, index) => (
-              <SwipeablePaymentRow key={payment.id} payment={payment} index={index} />
-            ))}
-          </div>
-        </CardContent>
-
-        <CardFooter className="flex flex-col items-stretch gap-6 pt-6">
+        <div className="flex flex-col items-stretch gap-6 pt-6">
           {results && (
             <div className="w-full space-y-4">
               <div className="space-y-2">
@@ -427,17 +424,17 @@ export function BillSplitForm({
                       return (
                         <div
                           key={key}
-                          className="flex items-center justify-between gap-2 text-sm border rounded-md p-2"
+                          className="flex items-center gap-2 text-sm border rounded-md p-2"
                         >
-                          <div className="flex-1">
-                            <span className="font-medium">{s.from}</span> ➡️ {s.to}
-                            <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
-                          </div>
                           <Checkbox
                             checked={doneSettlements.has(key)}
                             onCheckedChange={() => toggleSettlement(key)}
                             aria-label="settled"
                           />
+                          <div className="flex-1">
+                            <span className="font-medium">{s.from}</span> ➡️ {s.to}
+                            <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
+                          </div>
                         </div>
                       );
                     })}
@@ -446,8 +443,8 @@ export function BillSplitForm({
               )}
             </div>
           )}
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
       {/* Floating drawer trigger */}
       <AddPaymentDrawer participants={participants} onAdd={handleAddPayment} />
 
@@ -464,7 +461,7 @@ export function BillSplitForm({
               <X className="h-5 w-5" /> 参加者を削除しますか？
             </DialogTitle>
             <DialogDescription>
-              “{deleteTarget?.name || 'この参加者'}” を削除すると、この参加者が含まれる支払い履歴も
+              "{deleteTarget?.name || 'この参加者'}" を削除すると、この参加者が含まれる支払い履歴も
               全て削除されます。この操作は取り消せません。
             </DialogDescription>
           </DialogHeader>

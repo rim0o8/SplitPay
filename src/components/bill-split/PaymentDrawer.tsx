@@ -38,6 +38,7 @@ export function PaymentDrawer({ participants, payment, onSave, onDelete }: Payme
     setState((prev) => ({ ...prev, [field]: value }));
 
   const handleSubmit = () => {
+    if (state.participantIds.length === 0) return;
     onSave({ ...state });
     setOpen(false);
   };
@@ -53,13 +54,19 @@ export function PaymentDrawer({ participants, payment, onSave, onDelete }: Payme
   return (
     <Drawer.Root open={open} onOpenChange={setOpen} dismissible repositionInputs={false}>
       <Drawer.Trigger asChild>
-        <Button variant="outline" className="w-full justify-between">
-          <span className="truncate text-left flex-1">{payment.description || '（説明なし）'}</span>
-          <span className="ml-2 whitespace-nowrap text-muted-foreground text-sm">
-            {payerName} / {targetsLabel}
-          </span>
-          <span className="ml-4 font-semibold">{payment.amount}¥</span>
-          <Pencil className="ml-2 h-4 w-4 text-muted-foreground" />
+        <Button variant="outline" className="w-full px-3 py-6 flex flex-col gap-0.5">
+          <div className="flex w-full items-center justify-between">
+            <span className="min-w-0 flex-1 truncate overflow-hidden whitespace-nowrap text-left">
+              {payment.description || '（説明なし）'}
+            </span>
+            <Pencil className="ml-2 h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          </div>
+          <div className="flex w-full items-center justify-end gap-2 text-sm text-muted-foreground text-right">
+            <span className="truncate overflow-hidden">
+              {payerName} / {targetsLabel}
+            </span>
+            <span className="font-semibold text-foreground">{payment.amount}¥</span>
+          </div>
         </Button>
       </Drawer.Trigger>
 
@@ -156,7 +163,11 @@ export function PaymentDrawer({ participants, payment, onSave, onDelete }: Payme
             </div>
 
             <div className="flex gap-2 pt-2">
-              <Button className="flex-1" onClick={handleSubmit}>
+              <Button
+                className="flex-1"
+                onClick={handleSubmit}
+                disabled={state.participantIds.length === 0}
+              >
                 保存
               </Button>
               <Button variant="destructive" className="flex-1" onClick={onDelete}>

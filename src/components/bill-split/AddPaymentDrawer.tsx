@@ -52,7 +52,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
   };
 
   const handleSubmit = () => {
-    if (!payerId || !amount) return;
+    if (!payerId || !amount || participantIds.length === 0) return;
     onAdd({ payerId, amount, description, participantIds });
     setOpen(false);
     // reset after close animation
@@ -163,7 +163,12 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
               />
             </div>
 
-            <Button type="button" className="w-full" onClick={handleSubmit} disabled={!amount}>
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handleSubmit}
+              disabled={!amount || participantIds.length === 0}
+            >
               追加する
             </Button>
           </div>
