@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Payment } from '@/lib/split-session';
-import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { AddPaymentDrawer } from './AddPaymentDrawer';
 
 interface Participant {
   id: string;
@@ -167,22 +168,6 @@ export function BillSplitForm({
     setParticipants(updated);
   };
 
-  /* ---------- Payments ---------- */
-  const handleAddPayment = () => {
-    if (!participants.length) return;
-    const allIds = participants.map((p) => p.id);
-    setPayments([
-      ...payments,
-      {
-        id: crypto.randomUUID(),
-        payerId: participants[0].id,
-        amount: '',
-        description: '',
-        participantIds: allIds,
-      },
-    ]);
-  };
-
   const handleRemovePayment = (index: number) =>
     setPayments(payments.filter((_, i) => i !== index));
 
@@ -196,200 +181,214 @@ export function BillSplitForm({
     setPayments(updated);
   };
 
+  /* ---------- Drawer-based Addition ---------- */
+  const handleAddPayment = (data: Omit<Payment, 'id' | 'createdAt'>) => {
+    const newPayment: Payment = {
+      id: crypto.randomUUID(),
+      createdAt: Date.now(),
+      ...data,
+    };
+    setPayments((prev) => [...prev, newPayment]);
+  };
+
+  /* ---------- Utils ---------- */
+  const formatTime = (ts?: number) =>
+    ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
+
   return (
-    <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
-      <CardHeader>
-        <CardTitle>{sessionTitle}</CardTitle>
-      </CardHeader>
+    <>
+      <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
+        <CardHeader>
+          <CardTitle>{sessionTitle}</CardTitle>
+        </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Participants Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">参加者</h3>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setParticipantsOpen((prev) => !prev)}
-              aria-label="toggle-participants"
-            >
-              {participantsOpen ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-
-          {participantsOpen && (
-            <>
-              {participants.map((p, index) => (
-                <div key={p.id} className="grid w-full grid-cols-[1fr_auto] gap-2">
-                  <Input
-                    placeholder="名前"
-                    value={p.name}
-                    onChange={(e) => handleParticipantChange(index, e.target.value)}
-                    className="w-full"
-                  />
-                  {participants.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveParticipant(index)}
-                      aria-label="remove-participant"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+        <CardContent className="space-y-6">
+          {/* Participants Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold">参加者</h3>
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full sm:w-auto"
-                onClick={handleAddParticipant}
-              >
-                参加者を追加
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Payments Section */}
-        <div className="space-y-2">
-          <h3 className="font-semibold">支払い履歴</h3>
-          {payments.map((payment, index) => (
-            <div
-              key={payment.id}
-              className="grid w-full gap-2 sm:grid-cols-[minmax(0,8rem)_auto_1fr_minmax(0,6rem)_auto]"
-            >
-              <Select
-                value={payment.payerId}
-                onValueChange={(val) => handlePaymentChange(index, 'payerId', val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="支払者" />
-                </SelectTrigger>
-                <SelectContent>
-                  {participants.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name || '名前未設定'}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full">
-                    {payment.participantIds.length === participants.length
-                      ? '全員'
-                      : `${payment.participantIds.length}人`}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {participants.map((p) => (
-                    <DropdownMenuCheckboxItem
-                      key={p.id}
-                      checked={payment.participantIds.includes(p.id)}
-                      onCheckedChange={(checked) => {
-                        const current = payment.participantIds;
-                        const newIds = checked
-                          ? [...current, p.id]
-                          : current.filter((id) => id !== p.id);
-                        handlePaymentChange(index, 'participantIds', newIds);
-                      }}
-                    >
-                      {p.name || '名前未設定'}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Input
-                placeholder="説明"
-                value={payment.description}
-                onChange={(e) => handlePaymentChange(index, 'description', e.target.value)}
-                className="w-full"
-              />
-
-              <Input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                min="0"
-                placeholder="金額"
-                value={payment.amount}
-                onChange={(e) => handlePaymentChange(index, 'amount', e.target.value)}
-                className="w-full text-right"
-              />
-
-              <Button
-                type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => handleRemovePayment(index)}
+                onClick={() => setParticipantsOpen((prev) => !prev)}
+                aria-label="toggle-participants"
               >
-                <X className="h-4 w-4" />
+                {participantsOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </Button>
             </div>
-          ))}
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full sm:w-auto"
-            onClick={handleAddPayment}
-          >
-            <Plus className="h-4 w-4 mr-1" /> 支払いを追加
-          </Button>
-        </div>
-      </CardContent>
-
-      <CardFooter className="flex flex-col items-stretch gap-6 pt-6">
-        {results && (
-          <div className="w-full space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-semibold">個別残高</h3>
-              <div className="space-y-1">
-                {results.map(({ name, net }) => (
-                  <div key={name} className="flex justify-between text-sm border rounded-md p-2">
-                    <span>{name}</span>
-                    <span
-                      className={
-                        net === 0
-                          ? 'text-muted-foreground'
-                          : net > 0
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }
-                    >
-                      {net === 0 ? '±0' : `${net > 0 ? '+' : ''}${net.toFixed(2)}¥`}
-                    </span>
+            {participantsOpen && (
+              <>
+                {participants.map((p, index) => (
+                  <div key={p.id} className="grid w-full grid-cols-[1fr_auto] gap-2">
+                    <Input
+                      placeholder="名前"
+                      value={p.name}
+                      onChange={(e) => handleParticipantChange(index, e.target.value)}
+                      className="w-full"
+                    />
+                    {participants.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveParticipant(index)}
+                        aria-label="remove-participant"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
-              </div>
-            </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  onClick={handleAddParticipant}
+                >
+                  参加者を追加
+                </Button>
+              </>
+            )}
+          </div>
 
-            {settlements && settlements.length > 0 && (
+          {/* Payments Section */}
+          <div className="space-y-2">
+            <h3 className="font-semibold">支払い履歴</h3>
+            {payments.map((payment, index) => (
+              <div key={payment.id} className="space-y-1">
+                {/* Payment row */}
+                <div className="grid w-full gap-2 sm:grid-cols-[minmax(0,8rem)_auto_1fr_minmax(0,6rem)_auto]">
+                  <Select
+                    value={payment.payerId}
+                    onValueChange={(val) => handlePaymentChange(index, 'payerId', val)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="支払者" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {participants.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name || '名前未設定'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full">
+                        {payment.participantIds.length === participants.length
+                          ? '全員'
+                          : `${payment.participantIds.length}人`}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {participants.map((p) => (
+                        <DropdownMenuCheckboxItem
+                          key={p.id}
+                          checked={payment.participantIds.includes(p.id)}
+                          onCheckedChange={(checked) => {
+                            const current = payment.participantIds;
+                            const newIds = checked
+                              ? [...current, p.id]
+                              : current.filter((id) => id !== p.id);
+                            handlePaymentChange(index, 'participantIds', newIds);
+                          }}
+                        >
+                          {p.name || '名前未設定'}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Input
+                    placeholder="説明"
+                    value={payment.description}
+                    onChange={(e) => handlePaymentChange(index, 'description', e.target.value)}
+                    className="w-full"
+                  />
+
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="0"
+                    placeholder="金額"
+                    value={payment.amount}
+                    onChange={(e) => handlePaymentChange(index, 'amount', e.target.value)}
+                    className="w-full text-right"
+                  />
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemovePayment(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                {/* Timestamp */}
+                {payment.createdAt && (
+                  <div className="text-xs text-muted-foreground pl-1">
+                    追加: {formatTime(payment.createdAt)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex flex-col items-stretch gap-6 pt-6">
+          {results && (
+            <div className="w-full space-y-4">
               <div className="space-y-2">
-                <h3 className="font-semibold">精算案</h3>
+                <h3 className="font-semibold">個別残高</h3>
                 <div className="space-y-1">
-                  {settlements.map((s) => (
-                    <div key={`${s.from}-${s.to}`} className="text-sm border rounded-md p-2">
-                      <span className="font-medium">{s.from}</span> ➡️ {s.to}
-                      <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
+                  {results.map(({ name, net }) => (
+                    <div key={name} className="flex justify-between text-sm border rounded-md p-2">
+                      <span>{name}</span>
+                      <span
+                        className={
+                          net === 0
+                            ? 'text-muted-foreground'
+                            : net > 0
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }
+                      >
+                        {net === 0 ? '±0' : `${net > 0 ? '+' : ''}${net.toFixed(2)}¥`}
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </CardFooter>
-    </Card>
+
+              {settlements && settlements.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold">精算案</h3>
+                  <div className="space-y-1">
+                    {settlements.map((s) => (
+                      <div key={`${s.from}-${s.to}`} className="text-sm border rounded-md p-2">
+                        <span className="font-medium">{s.from}</span> ➡️ {s.to}
+                        <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardFooter>
+      </Card>
+      {/* Floating drawer trigger */}
+      <AddPaymentDrawer participants={participants} onAdd={handleAddPayment} />
+    </>
   );
 }

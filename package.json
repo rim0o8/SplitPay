@@ -60,7 +60,8 @@
     "uuid": "^11.1.0",
     "vfile": "^6.0.3",
     "zod": "^3.24.2",
-    "@upstash/redis": "^1.29.3"
+    "@upstash/redis": "^1.29.3",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

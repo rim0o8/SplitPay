@@ -9,6 +9,7 @@ interface Item {
   id: string;
   title?: string;
   participants: { name: string }[];
+  createdAt?: number;
 }
 
 export default function HomePage() {
@@ -30,15 +31,16 @@ export default function HomePage() {
     });
   }, []);
 
+  const formatTime = (ts?: number) =>
+    ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
+
   return (
     <Card className="mx-auto max-w-xl p-4 sm:p-6 space-y-4">
       <CardHeader>
         <CardTitle>最近の割り勘</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {items.length === 0 && (
-          <div className="text-muted-foreground">最近のセッションはありません。</div>
-        )}
+        {items.length === 0 && <div className="text-muted-foreground">さあ、割り勘を始めよう</div>}
         {items.map((item) => (
           <Link key={item.id} href={`/${item.id}`} className="block">
             <Button variant="outline" className="w-full justify-start">
@@ -47,6 +49,11 @@ export default function HomePage() {
                 <span className="text-xs text-muted-foreground">
                   参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
                 </span>
+                {item.createdAt && (
+                  <span className="text-xs text-muted-foreground">
+                    作成: {formatTime(item.createdAt)}
+                  </span>
+                )}
               </div>
             </Button>
           </Link>

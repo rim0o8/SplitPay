@@ -14,11 +14,16 @@ export interface Payment {
   amount: string;
   description: string;
   participantIds: string[];
+  /** Unix timestamp (ms) when the payment was recorded */
+  createdAt?: number;
 }
 
 export interface Session {
   id: string;
+  /** Optional title set by user */
   title?: string;
+  /** Unix timestamp (ms) when the session was created */
+  createdAt?: number;
   participants: { id: string; name: string }[];
   payments: Payment[];
 }
@@ -31,6 +36,7 @@ export async function createSession(
   const session: Session = {
     id,
     title,
+    createdAt: Date.now(),
     participants: participants.map((p) => ({ id: crypto.randomUUID(), name: p.name.trim() })),
     payments: [],
   };
