@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import type { Payment } from '@/lib/split-session';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Share2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { AddPaymentDrawer } from './AddPaymentDrawer';
@@ -302,11 +302,31 @@ export function BillSplitForm({
     );
   }
 
+  const handleShare = async () => {
+    try {
+      const url = window.location.href;
+      const data: ShareData = {
+        title: sessionTitle,
+        text: '割り勘に参加してください',
+        url,
+      };
+      if (navigator.share && navigator.canShare?.(data)) {
+        await navigator.share(data);
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('リンクをコピーしました');
+      }
+    } catch {}
+  };
+
   return (
     <>
       <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
           <CardTitle>{sessionTitle}</CardTitle>
+          <Button variant="ghost" size="icon" onClick={handleShare} aria-label="share-link">
+            <Share2 className="h-4 w-4" />
+          </Button>
         </CardHeader>
 
         <CardContent className="space-y-6">

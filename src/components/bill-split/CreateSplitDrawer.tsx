@@ -1,5 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Plus, X } from 'lucide-react';
@@ -22,6 +30,8 @@ export function CreateSplitDrawer() {
   const titleRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [sharePath, setSharePath] = useState<string | null>(null);
 
   const handleAddField = () => {
     const id = nanoid();
@@ -78,8 +88,11 @@ export function CreateSplitDrawer() {
         body: JSON.stringify({ title: title.trim(), participants: list }),
       });
       const { id } = await res.json();
+
+      const url = `${window.location.origin}/${id}`;
+      setShareLink(url);
+      setSharePath(`/${id}`);
       setOpen(false);
-      router.push(`/${id}`);
     });
   };
 
@@ -181,6 +194,85 @@ export function CreateSplitDrawer() {
           </Button>
         </Drawer.Content>
       </Drawer.Portal>
+
+      {/* Share Link Dialog */}
+      <Dialog
+        open={shareLink !== null}
+        onOpenChange={(o) => {
+          if (!o && sharePath) {
+            router.push(sharePath);
+            setShareLink(null);
+            setSharePath(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>リンクを共有</DialogTitle>
+            <DialogDescription>
+              参加者に以下のリンクを送って、割り勘ページに招待しましょう。
+            </DialogDescription>
+          </DialogHeader>
+
+          {shareLink && (
+            <div className="space-y-3 py-2">
+              <input
+                readOnly
+                value={shareLink}
+                className="w-full rounded-md border px-2 py-1 text-sm"
+                onFocus={(e) => e.currentTarget.select()}
+              />
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const shareData = {
+                        title: title || '割り勘',
+                        text: '割り勘に参加してください',
+                        url: shareLink,
+                      } as ShareData;
+                      if (navigator.share && navigator.canShare?.(shareData)) {
+                        await navigator.share(shareData);
+                      } else {
+                        await navigator.clipboard.writeText(shareLink);
+                        alert('リンクをコピーしました');
+                      }
+                    } catch {}
+                  }}
+                >
+                  共有 / コピー
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    if (sharePath) router.push(sharePath);
+                    setShareLink(null);
+                    setSharePath(null);
+                  }}
+                >
+                  後で共有
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => {
+                if (sharePath) router.push(sharePath);
+                setShareLink(null);
+                setSharePath(null);
+              }}
+            >
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Drawer.Root>
   );
 }
