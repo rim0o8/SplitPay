@@ -219,7 +219,8 @@ export function CreateSplitDrawer() {
               <input
                 readOnly
                 value={shareLink}
-                className="w-full rounded-md border px-2 py-1 text-sm"
+                className="w-full rounded-md border bg-background px-2 py-1 text-sm
+                           dark:bg-background"
                 onFocus={(e) => e.currentTarget.select()}
               />
 
