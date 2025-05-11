@@ -109,6 +109,7 @@ export function PaymentDrawer({ participants, payment, onSave, onDelete }: Payme
                     <DropdownMenuCheckboxItem
                       key={p.id}
                       checked={state.participantIds.includes(p.id)}
+                      onSelect={(e) => e.preventDefault()}
                       onCheckedChange={(checked) => {
                         handleChange(
                           'participantIds',

@@ -119,6 +119,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
                     <DropdownMenuCheckboxItem
                       key={p.id}
                       checked={participantIds.includes(p.id)}
+                      onSelect={(e) => e.preventDefault()}
                       onCheckedChange={(checked) =>
                         setParticipantIds((prev) =>
                           checked ? [...prev, p.id] : prev.filter((id) => id !== p.id)
