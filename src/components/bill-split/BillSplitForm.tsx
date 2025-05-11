@@ -2,6 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import type { Payment } from '@/lib/split-session';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
@@ -45,6 +53,13 @@ export function BillSplitForm({
   const [payments, setPayments] = useState<Payment[]>(initialPayments ?? []);
 
   const [participantsOpen, setParticipantsOpen] = useState(false);
+
+  // index of participant pending deletion (null = none)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    index: number;
+    id: string;
+    name: string;
+  } | null>(null);
 
   /* ---------- Sync to backend ---------- */
   useEffect(() => {
@@ -147,8 +162,23 @@ export function BillSplitForm({
   const handleAddParticipant = () =>
     setParticipants([...participants, { id: crypto.randomUUID(), name: '' }]);
 
-  const handleRemoveParticipant = (index: number) =>
-    setParticipants(participants.filter((_, i) => i !== index));
+  const handleRemoveParticipant = (index: number) => {
+    const target = participants[index];
+    if (!target) return;
+    setDeleteTarget({ index, id: target.id, name: target.name });
+  };
+
+  const confirmRemoveParticipant = () => {
+    if (!deleteTarget) return;
+    const { index, id } = deleteTarget;
+    // remove participant
+    setParticipants((prev) => prev.filter((_, i) => i !== index));
+    // remove related payments (payer or participant)
+    setPayments((prev) =>
+      prev.filter((pay) => pay.payerId !== id && !pay.participantIds.includes(id))
+    );
+    setDeleteTarget(null);
+  };
 
   const handleParticipantChange = (index: number, name: string) => {
     const updated = [...participants];
@@ -306,6 +336,35 @@ export function BillSplitForm({
       </Card>
       {/* Floating drawer trigger */}
       <AddPaymentDrawer participants={participants} onAdd={handleAddPayment} />
+
+      {/* ---------- Delete Confirmation Dialog ---------- */}
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <X className="h-5 w-5" /> 参加者を削除しますか？
+            </DialogTitle>
+            <DialogDescription>
+              “{deleteTarget?.name || 'この参加者'}” を削除すると、この参加者が含まれる支払い履歴も
+              全て削除されます。この操作は取り消せません。
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4">
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
+              キャンセル
+            </Button>
+            <Button variant="destructive" onClick={confirmRemoveParticipant}>
+              削除する
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

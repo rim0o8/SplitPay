@@ -13,10 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useKeyboardAwareDrawer } from '@/hooks/useKeyboardAwareDrawer';
 import type { Payment } from '@/lib/split-session';
 import { Plus, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Drawer } from 'vaul';
 
 interface Participant {
@@ -60,9 +59,6 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
     setTimeout(resetForm, 300);
   };
 
-  const contentRef = useRef<HTMLDivElement>(null);
-  useKeyboardAwareDrawer(contentRef);
-
   return (
     <Drawer.Root open={open} onOpenChange={setOpen} dismissible>
       {/* Trigger */}
@@ -79,10 +75,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
       {/* Portal */}
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content
-          ref={contentRef}
-          className="fixed bottom-0 left-0 right-0 mt-24 flex max-h-[85%] flex-col rounded-t-2xl border bg-background pb-4"
-        >
+        <Drawer.Content className="fixed inset-x-0 bottom-0 top-16 flex flex-col rounded-t-2xl border bg-background pb-4 sm:top-auto sm:mt-24 sm:max-h-[90%]">
           <Drawer.Title className="sr-only">支払いを追加</Drawer.Title>
           <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted" />
 
