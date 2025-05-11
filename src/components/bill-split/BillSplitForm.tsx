@@ -296,7 +296,7 @@ export function BillSplitForm({
           {results && (
             <div className="w-full space-y-4">
               <div className="space-y-2">
-                <h3 className="font-semibold">個別残高</h3>
+                <h3 className="font-semibold">支払い状況</h3>
                 <div className="space-y-1">
                   {results.map(({ name, net }) => (
                     <div key={name} className="flex justify-between text-sm border rounded-md p-2">
