@@ -60,7 +60,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
   };
 
   return (
-    <Drawer.Root open={open} onOpenChange={setOpen} dismissible>
+    <Drawer.Root open={open} onOpenChange={setOpen} dismissible repositionInputs={false}>
       {/* Trigger */}
       <Drawer.Trigger asChild>
         <Button
@@ -75,7 +75,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
       {/* Portal */}
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 top-16 flex flex-col rounded-t-2xl border bg-background pb-4 sm:top-auto sm:mt-24 sm:max-h-[90%]">
+        <Drawer.Content className="fixed inset-x-0 bottom-0 flex flex-col rounded-t-2xl border bg-background pb-4 max-h-[85vh] sm:max-h-[90%]">
           <Drawer.Title className="sr-only">支払いを追加</Drawer.Title>
           <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted" />
 
