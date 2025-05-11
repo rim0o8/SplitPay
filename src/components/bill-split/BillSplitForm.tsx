@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import type { Payment } from '@/lib/split-session';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import { AddPaymentDrawer } from './AddPaymentDrawer';
 import { PaymentDrawer } from './PaymentDrawer';
 
@@ -256,6 +257,51 @@ export function BillSplitForm({
   const formatTime = (ts?: number) =>
     ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
 
+  /* ---------- Swipeable Payment Row ---------- */
+  interface PaymentRowProps {
+    payment: Payment;
+    index: number;
+  }
+
+  function SwipeablePaymentRow({ payment, index }: PaymentRowProps) {
+    const [showDelete, setShowDelete] = useState(false);
+
+    const handlers = useSwipeable({
+      onSwipedLeft: () => setShowDelete(true),
+      onSwipedRight: () => setShowDelete(false),
+      delta: 40,
+    });
+
+    return (
+      <div className="relative" {...handlers}>
+        <button
+          type="button"
+          className={`absolute inset-y-0 right-0 w-16 bg-red-600 text-white flex items-center justify-center transition-opacity ${
+            showDelete ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => handleRemovePayment(index)}
+        >
+          削除
+        </button>
+
+        <div
+          className={`transition-transform duration-200 ${
+            showDelete ? '-translate-x-16' : 'translate-x-0'
+          }`}
+        >
+          <PaymentDrawer
+            participants={participants}
+            payment={payment}
+            onSave={(updated) => {
+              setPayments((prev) => prev.map((p, i) => (i === index ? updated : p)));
+            }}
+            onDelete={() => handleRemovePayment(index)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
@@ -322,15 +368,7 @@ export function BillSplitForm({
           <div className="space-y-2">
             <h3 className="font-semibold">支払い履歴</h3>
             {payments.map((payment, index) => (
-              <PaymentDrawer
-                key={payment.id}
-                participants={participants}
-                payment={payment}
-                onSave={(updated) => {
-                  setPayments((prev) => prev.map((p, i) => (i === index ? updated : p)));
-                }}
-                onDelete={() => handleRemovePayment(index)}
-              />
+              <SwipeablePaymentRow key={payment.id} payment={payment} index={index} />
             ))}
           </div>
         </CardContent>

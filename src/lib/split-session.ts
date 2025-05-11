@@ -66,3 +66,12 @@ export async function updateSession(id: string, data: Partial<Omit<Session, 'id'
   const ttlSeconds = 60 * 60 * 24 * 180;
   await redis.set(key, updated, { ex: ttlSeconds });
 }
+
+/**
+ * Permanently delete a split session.
+ */
+export async function deleteSession(id: string): Promise<void> {
+  const key = `split:${id}`;
+  await redis.del(key);
+  log('deleted', id);
+}

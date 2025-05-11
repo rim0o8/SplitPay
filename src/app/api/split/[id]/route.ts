@@ -1,4 +1,4 @@
-import { getSession, updateSession } from '@/lib/split-session';
+import { deleteSession, getSession, updateSession } from '@/lib/split-session';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
@@ -23,5 +23,16 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
   } catch (error) {
     console.error(error);
     return new NextResponse('Error', { status: 500 });
+  }
+}
+
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    await deleteSession(id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    return new NextResponse('Error deleting session', { status: 500 });
   }
 }

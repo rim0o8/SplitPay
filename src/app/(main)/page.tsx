@@ -3,6 +3,7 @@
 import { CreateSplitDrawer } from '@/components/bill-split/CreateSplitDrawer';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
 
 interface Item {
   id: string;
@@ -10,6 +11,60 @@ interface Item {
   participants: { name: string }[];
   createdAt?: number;
   cleared?: boolean;
+}
+
+interface SwipeItemProps {
+  item: Item;
+  onDelete: (id: string) => void;
+}
+
+function SwipeableItem({ item, onDelete }: SwipeItemProps) {
+  const [showDelete, setShowDelete] = useState(false);
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => setShowDelete(true),
+    onSwipedRight: () => setShowDelete(false),
+    delta: 40,
+  });
+
+  const formatTime = (ts?: number) =>
+    ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
+
+  return (
+    <div className="relative" {...handlers}>
+      {/* Delete button */}
+      <button
+        type="button"
+        className={`absolute inset-y-0 right-0 w-20 bg-red-600 text-white flex items-center justify-center transition-opacity ${
+          showDelete ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={() => onDelete(item.id)}
+      >
+        削除
+      </button>
+
+      {/* Main content */}
+      <Link
+        href={`/${item.id}`}
+        className={`block bg-white w-full rounded-md border p-3 hover:bg-muted transition-transform ${
+          showDelete ? '-translate-x-20' : 'translate-x-0'
+        } duration-200`}
+      >
+        <div className="flex flex-col text-left">
+          <span className="font-medium truncate">{item.title || '無題の割り勘'}</span>
+          <span className="text-xs text-muted-foreground truncate">
+            参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
+          </span>
+          {item.cleared && <span className="text-xs text-green-600">清算済み</span>}
+          {item.createdAt && (
+            <span className="text-xs text-muted-foreground">
+              作成: {formatTime(item.createdAt)}
+            </span>
+          )}
+        </div>
+      </Link>
+    </div>
+  );
 }
 
 export default function HomePage() {
@@ -31,9 +86,6 @@ export default function HomePage() {
     });
   }, []);
 
-  const formatTime = (ts?: number) =>
-    ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
-
   return (
     <>
       <section className="mx-auto max-w-2xl px-4 sm:px-6 py-8 space-y-6">
@@ -43,22 +95,23 @@ export default function HomePage() {
             <div className="text-muted-foreground">さあ、割り勘を始めよう</div>
           )}
           {items.map((item) => (
-            <Link key={item.id} href={`/${item.id}`} className="block">
-              <div className="w-full rounded-md border p-3 hover:bg-muted transition-colors">
-                <div className="flex flex-col text-left">
-                  <span className="font-medium truncate">{item.title || '無題の割り勘'}</span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
-                  </span>
-                  {item.cleared && <span className="text-xs text-green-600">清算済み</span>}
-                  {item.createdAt && (
-                    <span className="text-xs text-muted-foreground">
-                      作成: {formatTime(item.createdAt)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
+            <SwipeableItem
+              key={item.id}
+              item={item}
+              onDelete={(id) => {
+                setItems((prev) => prev.filter((it) => it.id !== id));
+
+                // update localStorage
+                try {
+                  const key = 'split-recent';
+                  const current = JSON.parse(localStorage.getItem(key) ?? '[]') as string[];
+                  localStorage.setItem(key, JSON.stringify(current.filter((v) => v !== id)));
+                } catch {}
+
+                // delete from backend (fire-and-forget)
+                fetch(`/api/split/${id}`, { method: 'DELETE' }).catch(() => {});
+              }}
+            />
           ))}
           {/* Plus button handled separately */}
         </div>
