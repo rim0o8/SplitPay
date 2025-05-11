@@ -17,6 +17,8 @@ export default async function SplitSessionPage({ params }: Props) {
       key={session.id}
       initialParticipants={session.participants}
       initialPayments={session.payments as Payment[]}
+      initialDoneSettlements={session.doneSettlements}
+      initialCleared={session.cleared}
       sessionId={session.id}
       sessionTitle={session.title || '無題の割り勘'}
     />

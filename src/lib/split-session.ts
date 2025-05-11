@@ -26,6 +26,10 @@ export interface Session {
   createdAt?: number;
   participants: { id: string; name: string }[];
   payments: Payment[];
+  /** Keys of settlements that have been marked as done (for UI). */
+  doneSettlements?: string[];
+  /** Whether all settlements are cleared. */
+  cleared?: boolean;
 }
 
 export async function createSession(
@@ -53,10 +57,7 @@ export async function getSession(id: string): Promise<Session | null> {
   return data ?? null;
 }
 
-export async function updateSession(
-  id: string,
-  data: Partial<Pick<Session, 'participants' | 'payments' | 'title'>>
-): Promise<void> {
+export async function updateSession(id: string, data: Partial<Omit<Session, 'id'>>): Promise<void> {
   log('update', id);
   const key = `split:${id}`;
   const current = await redis.get<Session>(key);

@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,8 @@ interface Settlement {
 interface BillSplitFormProps {
   initialParticipants?: Participant[];
   initialPayments?: Payment[];
+  initialDoneSettlements?: string[];
+  initialCleared?: boolean;
   sessionId: string;
   sessionTitle: string;
 }
@@ -43,6 +46,8 @@ interface BillSplitFormProps {
 export function BillSplitForm({
   initialParticipants,
   initialPayments,
+  initialDoneSettlements,
+  initialCleared: _initialCleared,
   sessionId,
   sessionTitle,
 }: BillSplitFormProps) {
@@ -61,31 +66,12 @@ export function BillSplitForm({
     name: string;
   } | null>(null);
 
-  /* ---------- Sync to backend ---------- */
-  useEffect(() => {
-    if (!sessionId) return;
-    // cache session id list in localStorage
-    try {
-      const key = 'split-recent';
-      const current = JSON.parse(localStorage.getItem(key) ?? '[]') as string[];
-      if (!current.includes(sessionId)) {
-        current.unshift(sessionId);
-        localStorage.setItem(key, JSON.stringify(current.slice(0, 10)));
-      }
-    } catch {}
+  // State to track settlement completion
+  const [doneSettlements, setDoneSettlements] = useState<Set<string>>(
+    () => new Set(initialDoneSettlements ?? [])
+  );
 
-    const timer = setTimeout(() => {
-      // fire-and-forget
-      fetch(`/api/split/${sessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participants, payments }),
-      }).catch((err) => {
-        if (process.env.NODE_ENV !== 'production') console.error(err);
-      });
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [participants, payments, sessionId]);
+  /* ---------- Calculation ---------- */
 
   const calculation = useMemo(() => {
     if (!participants.length || !payments.length) return { results: null, settlements: null };
@@ -157,6 +143,63 @@ export function BillSplitForm({
   }, [participants, payments]);
 
   const { results, settlements } = calculation;
+
+  /* ---------- Sync to backend ---------- */
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // cache session id list in localStorage (unchanged)
+    try {
+      const key = 'split-recent';
+      const current = JSON.parse(localStorage.getItem(key) ?? '[]') as string[];
+      if (!current.includes(sessionId)) {
+        current.unshift(sessionId);
+        localStorage.setItem(key, JSON.stringify(current.slice(0, 10)));
+      }
+    } catch {}
+
+    const timer = setTimeout(() => {
+      const allCleared =
+        settlements && settlements.length > 0 && doneSettlements.size === settlements.length;
+
+      // fire-and-forget
+      fetch(`/api/split/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participants,
+          payments,
+          doneSettlements: Array.from(doneSettlements),
+          cleared: allCleared,
+        }),
+      }).catch((err) => {
+        if (process.env.NODE_ENV !== 'production') console.error(err);
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [participants, payments, doneSettlements, settlements, sessionId]);
+
+  /* ---------- Settlement Status Helpers ---------- */
+  const toggleSettlement = (key: string) => {
+    setDoneSettlements((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!settlements) return;
+    setDoneSettlements((prev) => {
+      const keys = new Set(settlements.map((s) => `${s.from}-${s.to}-${s.amount}`));
+      const filtered = new Set<string>();
+      for (const k of Array.from(prev)) {
+        if (keys.has(k)) filtered.add(k);
+      }
+      return filtered;
+    });
+  }, [settlements]);
 
   /* ---------- Participants ---------- */
   const handleAddParticipant = () =>
@@ -321,12 +364,25 @@ export function BillSplitForm({
                 <div className="space-y-2">
                   <h3 className="font-semibold">精算案</h3>
                   <div className="space-y-1">
-                    {settlements.map((s) => (
-                      <div key={`${s.from}-${s.to}`} className="text-sm border rounded-md p-2">
-                        <span className="font-medium">{s.from}</span> ➡️ {s.to}
-                        <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
-                      </div>
-                    ))}
+                    {settlements.map((s) => {
+                      const key = `${s.from}-${s.to}-${s.amount}`;
+                      return (
+                        <div
+                          key={key}
+                          className="flex items-center justify-between gap-2 text-sm border rounded-md p-2"
+                        >
+                          <div className="flex-1">
+                            <span className="font-medium">{s.from}</span> ➡️ {s.to}
+                            <span className="ml-2 font-semibold">{s.amount.toFixed(2)}¥</span>
+                          </div>
+                          <Checkbox
+                            checked={doneSettlements.has(key)}
+                            onCheckedChange={() => toggleSettlement(key)}
+                            aria-label="settled"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

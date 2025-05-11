@@ -9,6 +9,7 @@ interface Item {
   title?: string;
   participants: { name: string }[];
   createdAt?: number;
+  cleared?: boolean;
 }
 
 export default function HomePage() {
@@ -49,6 +50,7 @@ export default function HomePage() {
                   <span className="text-xs text-muted-foreground truncate">
                     参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
                   </span>
+                  {item.cleared && <span className="text-xs text-green-600">清算済み</span>}
                   {item.createdAt && (
                     <span className="text-xs text-muted-foreground">
                       作成: {formatTime(item.createdAt)}
