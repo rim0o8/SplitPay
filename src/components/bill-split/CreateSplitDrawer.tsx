@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useKeyboardAwareDrawer } from '@/hooks/useKeyboardAwareDrawer';
 import { Plus, X } from 'lucide-react';
 import { nanoid } from 'nanoid';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { Drawer } from 'vaul';
 
 interface ParticipantField {
@@ -18,6 +19,8 @@ export function CreateSplitDrawer() {
   const [names, setNames] = useState<ParticipantField[]>([]);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+  useKeyboardAwareDrawer(contentRef);
 
   const handleAddField = () => setNames((prev) => [...prev, { id: nanoid(), value: '' }]);
   const handleRemoveField = (id: string) => setNames((prev) => prev.filter((n) => n.id !== id));
@@ -59,7 +62,10 @@ export function CreateSplitDrawer() {
 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 flex max-h-[90%] flex-col rounded-t-2xl border bg-background pb-4">
+        <Drawer.Content
+          ref={contentRef}
+          className="fixed bottom-0 left-0 right-0 mt-24 flex max-h-[90%] flex-col rounded-t-2xl border bg-background pb-4"
+        >
           <Drawer.Title className="sr-only">新しい割り勘を開始</Drawer.Title>
           <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted" />
 

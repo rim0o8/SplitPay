@@ -13,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useKeyboardAwareDrawer } from '@/hooks/useKeyboardAwareDrawer';
 import type { Payment } from '@/lib/split-session';
 import { Pencil, X } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Drawer } from 'vaul';
 
 interface Participant {
@@ -33,6 +34,8 @@ interface PaymentDrawerProps {
 export function PaymentDrawer({ participants, payment, onSave, onDelete }: PaymentDrawerProps) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<Payment>({ ...payment });
+  const contentRef = useRef<HTMLDivElement>(null);
+  useKeyboardAwareDrawer(contentRef);
 
   const handleChange = <T extends keyof Payment>(field: T, value: Payment[T]) =>
     setState((prev) => ({ ...prev, [field]: value }));
@@ -65,7 +68,10 @@ export function PaymentDrawer({ participants, payment, onSave, onDelete }: Payme
 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 flex max-h-[80%] flex-col rounded-t-2xl border bg-background pb-4">
+        <Drawer.Content
+          ref={contentRef}
+          className="fixed bottom-0 left-0 right-0 mt-24 flex max-h-[80%] flex-col rounded-t-2xl border bg-background pb-4"
+        >
           <Drawer.Title className="sr-only">支払い編集</Drawer.Title>
           <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted" />
 
