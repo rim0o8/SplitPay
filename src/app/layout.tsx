@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import VercelAnalytics from '@/lib/vercel-analytics';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AuthProviders } from './auth/providers';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -19,9 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn(inter.className, 'min-h-screen bg-background flex flex-col')}>
         <GoogleAnalytics />
         <VercelAnalytics />
-        <AuthProviders>
-          <div className="flex-grow">{children}</div>
-        </AuthProviders>
+        <div className="flex-grow">{children}</div>
       </body>
     </html>
   );

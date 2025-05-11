@@ -38,20 +38,16 @@ function AnalyticsComponent() {
         strategy="afterInteractive"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
       />
-      <Script
-        id="google-analytics"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
-      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}', {
+            page_path: window.location.pathname,
+          });
+        `}
+      </Script>
     </>
   );
 }
@@ -79,10 +75,6 @@ export const trackEvent = (action: string, category: string, label: string, valu
 // TypeScriptの型定義
 declare global {
   interface Window {
-    gtag: (
-      command: string,
-      target: string,
-      config?: Record<string, unknown> | string
-    ) => void;
+    gtag: (command: string, target: string, config?: Record<string, unknown> | string) => void;
   }
-} 
+}

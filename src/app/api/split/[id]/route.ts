@@ -14,9 +14,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const session = await getSession(params.id);
+    const session = await getSession(id);
     if (!session) return new NextResponse('Not found', { status: 404 });
     return NextResponse.json(session);
   } catch (error) {
