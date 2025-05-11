@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { participants } = await request.json();
-    const id = await createSession(participants);
+    const { participants, title } = await request.json();
+    const id = await createSession(participants, title);
     return NextResponse.json({ id });
   } catch (error) {
     console.error(error);

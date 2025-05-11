@@ -34,7 +34,6 @@
     "@stripe/stripe-js": "^6.1.0",
     "@tavily/core": "^0.3.3",
     "@vercel/analytics": "^1.5.0",
-    "@vercel/kv": "3.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "caniuse-lite": "^1.0.30001707",
     "class-variance-authority": "^0.7.1",

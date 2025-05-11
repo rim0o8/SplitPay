@@ -53,7 +53,7 @@ export default async function middleware(req: NextRequest) {
 
   // トークンをチェック
   const token = await getToken({
-    req: req as any,
+    req: req as unknown as NextRequest,
     secret: Config.NEXTAUTH_SECRET,
   });
 

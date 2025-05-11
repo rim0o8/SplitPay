@@ -16,20 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { Payment } from '@/lib/split-session';
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface Participant {
   id: string;
   name: string;
-}
-
-interface Payment {
-  id: string;
-  payerId: string;
-  amount: string;
-  description: string;
-  participantIds: string[];
 }
 
 interface Result {
@@ -47,9 +40,15 @@ interface BillSplitFormProps {
   initialParticipants?: Participant[];
   initialPayments?: Payment[];
   sessionId?: string;
+  sessionTitle?: string;
 }
 
-export function BillSplitForm({ initialParticipants, initialPayments }: BillSplitFormProps) {
+export function BillSplitForm({
+  initialParticipants,
+  initialPayments,
+  sessionId,
+  sessionTitle,
+}: BillSplitFormProps) {
   const [participants, setParticipants] = useState<Participant[]>(
     initialParticipants?.length ? initialParticipants : [{ id: crypto.randomUUID(), name: '' }]
   );
@@ -57,6 +56,32 @@ export function BillSplitForm({ initialParticipants, initialPayments }: BillSpli
   const [payments, setPayments] = useState<Payment[]>(initialPayments ?? []);
 
   const [participantsOpen, setParticipantsOpen] = useState(true);
+
+  /* ---------- Sync to backend ---------- */
+  useEffect(() => {
+    if (!sessionId) return;
+    // cache session id list in localStorage
+    try {
+      const key = 'split-recent';
+      const current = JSON.parse(localStorage.getItem(key) ?? '[]') as string[];
+      if (!current.includes(sessionId)) {
+        current.unshift(sessionId);
+        localStorage.setItem(key, JSON.stringify(current.slice(0, 10)));
+      }
+    } catch {}
+
+    const timer = setTimeout(() => {
+      // fire-and-forget
+      fetch(`/api/split/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participants, payments }),
+      }).catch((err) => {
+        if (process.env.NODE_ENV !== 'production') console.error(err);
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [participants, payments, sessionId]);
 
   const calculation = useMemo(() => {
     if (!participants.length || !payments.length) return { results: null, settlements: null };
@@ -175,7 +200,7 @@ export function BillSplitForm({ initialParticipants, initialPayments }: BillSpli
   return (
     <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
       <CardHeader>
-        <CardTitle>割り勘計算ツール</CardTitle>
+        <CardTitle>{sessionTitle || '割り勘計算ツール'}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
