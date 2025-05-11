@@ -2,24 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import type { Payment } from '@/lib/split-session';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AddPaymentDrawer } from './AddPaymentDrawer';
+import { PaymentDrawer } from './PaymentDrawer';
 
 interface Participant {
   id: string;
@@ -261,86 +249,15 @@ export function BillSplitForm({
           <div className="space-y-2">
             <h3 className="font-semibold">支払い履歴</h3>
             {payments.map((payment, index) => (
-              <div key={payment.id} className="space-y-1">
-                {/* Payment row */}
-                <div className="grid w-full gap-2 sm:grid-cols-[minmax(0,8rem)_auto_1fr_minmax(0,6rem)_auto]">
-                  <Select
-                    value={payment.payerId}
-                    onValueChange={(val) => handlePaymentChange(index, 'payerId', val)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="支払者" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {participants.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name || '名前未設定'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full">
-                        {payment.participantIds.length === participants.length
-                          ? '全員'
-                          : `${payment.participantIds.length}人`}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {participants.map((p) => (
-                        <DropdownMenuCheckboxItem
-                          key={p.id}
-                          checked={payment.participantIds.includes(p.id)}
-                          onCheckedChange={(checked) => {
-                            const current = payment.participantIds;
-                            const newIds = checked
-                              ? [...current, p.id]
-                              : current.filter((id) => id !== p.id);
-                            handlePaymentChange(index, 'participantIds', newIds);
-                          }}
-                        >
-                          {p.name || '名前未設定'}
-                        </DropdownMenuCheckboxItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Input
-                    placeholder="説明"
-                    value={payment.description}
-                    onChange={(e) => handlePaymentChange(index, 'description', e.target.value)}
-                    className="w-full"
-                  />
-
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    step="0.01"
-                    min="0"
-                    placeholder="金額"
-                    value={payment.amount}
-                    onChange={(e) => handlePaymentChange(index, 'amount', e.target.value)}
-                    className="w-full text-right"
-                  />
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemovePayment(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                {/* Timestamp */}
-                {payment.createdAt && (
-                  <div className="text-xs text-muted-foreground pl-1">
-                    追加: {formatTime(payment.createdAt)}
-                  </div>
-                )}
-              </div>
+              <PaymentDrawer
+                key={payment.id}
+                participants={participants}
+                payment={payment}
+                onSave={(updated) => {
+                  setPayments((prev) => prev.map((p, i) => (i === index ? updated : p)));
+                }}
+                onDelete={() => handleRemovePayment(index)}
+              />
             ))}
           </div>
         </CardContent>

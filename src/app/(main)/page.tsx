@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreateSplitDrawer } from '@/components/bill-split/CreateSplitDrawer';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -35,33 +34,36 @@ export default function HomePage() {
     ts ? new Date(ts).toLocaleString(undefined, { hour12: false }) : '';
 
   return (
-    <Card className="mx-auto max-w-xl p-4 sm:p-6 space-y-4">
-      <CardHeader>
-        <CardTitle>最近の割り勘</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {items.length === 0 && <div className="text-muted-foreground">さあ、割り勘を始めよう</div>}
-        {items.map((item) => (
-          <Link key={item.id} href={`/${item.id}`} className="block">
-            <Button variant="outline" className="w-full justify-start">
-              <div className="flex flex-col text-left">
-                <span className="font-medium truncate">{item.title || '無題の割り勘'}</span>
-                <span className="text-xs text-muted-foreground">
-                  参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
-                </span>
-                {item.createdAt && (
-                  <span className="text-xs text-muted-foreground">
-                    作成: {formatTime(item.createdAt)}
+    <>
+      <section className="mx-auto max-w-2xl px-4 sm:px-6 py-8 space-y-6">
+        <h1 className="text-2xl font-bold">最近の割り勘</h1>
+        <div className="space-y-3">
+          {items.length === 0 && (
+            <div className="text-muted-foreground">さあ、割り勘を始めよう</div>
+          )}
+          {items.map((item) => (
+            <Link key={item.id} href={`/${item.id}`} className="block">
+              <div className="w-full rounded-md border p-3 hover:bg-muted transition-colors">
+                <div className="flex flex-col text-left">
+                  <span className="font-medium truncate">{item.title || '無題の割り勘'}</span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    参加者: {item.participants.map((p) => p.name || '名前未設定').join(', ')}
                   </span>
-                )}
+                  {item.createdAt && (
+                    <span className="text-xs text-muted-foreground">
+                      作成: {formatTime(item.createdAt)}
+                    </span>
+                  )}
+                </div>
               </div>
-            </Button>
-          </Link>
-        ))}
-        <Link href="/start" className="block pt-4">
-          <Button className="w-full">新しい割り勘を開始</Button>
-        </Link>
-      </CardContent>
-    </Card>
+            </Link>
+          ))}
+          {/* Plus button handled separately */}
+        </div>
+      </section>
+
+      {/* Floating drawer for creating new split */}
+      <CreateSplitDrawer />
+    </>
   );
 }

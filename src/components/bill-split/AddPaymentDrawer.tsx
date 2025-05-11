@@ -65,7 +65,7 @@ export function AddPaymentDrawer({ participants, onAdd }: AddPaymentDrawerProps)
       <Drawer.Trigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus-visible:ring-2 sm:bottom-8 sm:right-8"
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus-visible:ring-2 sm:bottom-8 sm:right-8 transition-opacity data-[state=open]:opacity-0 data-[state=open]:pointer-events-none"
           aria-label="add-payment"
         >
           <Plus className="h-6 w-6" />
