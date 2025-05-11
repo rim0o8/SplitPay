@@ -40,7 +40,7 @@ export default function HomePage() {
           <div className="text-muted-foreground">最近のセッションはありません。</div>
         )}
         {items.map((item) => (
-          <Link key={item.id} href={`/split/${item.id}`} className="block">
+          <Link key={item.id} href={`/${item.id}`} className="block">
             <Button variant="outline" className="w-full justify-start">
               <div className="flex flex-col text-left">
                 <span className="font-medium truncate">{item.title || '無題の割り勘'}</span>

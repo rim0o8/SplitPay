@@ -39,8 +39,8 @@ interface Settlement {
 interface BillSplitFormProps {
   initialParticipants?: Participant[];
   initialPayments?: Payment[];
-  sessionId?: string;
-  sessionTitle?: string;
+  sessionId: string;
+  sessionTitle: string;
 }
 
 export function BillSplitForm({
@@ -55,7 +55,7 @@ export function BillSplitForm({
 
   const [payments, setPayments] = useState<Payment[]>(initialPayments ?? []);
 
-  const [participantsOpen, setParticipantsOpen] = useState(true);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
 
   /* ---------- Sync to backend ---------- */
   useEffect(() => {
@@ -192,7 +192,6 @@ export function BillSplitForm({
     value: Payment[T]
   ) => {
     const updated = [...payments];
-    // @ts-expect-error allow dynamic
     updated[index][field] = value;
     setPayments(updated);
   };
@@ -200,7 +199,7 @@ export function BillSplitForm({
   return (
     <Card className="mx-auto max-w-3xl border-0 shadow-none p-4 sm:p-6">
       <CardHeader>
-        <CardTitle>{sessionTitle || '割り勘計算ツール'}</CardTitle>
+        <CardTitle>{sessionTitle}</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">

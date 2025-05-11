@@ -18,6 +18,7 @@ export default async function SplitSessionPage({ params }: Props) {
       initialParticipants={session.participants}
       initialPayments={session.payments as Payment[]}
       sessionId={session.id}
+      sessionTitle={session.title || '無題の割り勘'}
     />
   );
 }
